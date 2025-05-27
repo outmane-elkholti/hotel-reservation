@@ -1,0 +1,81 @@
+BIENVENUE À L'HÔTEL DELUXE
+==========================
+
+Cher(e) {{ user.get_full_name }},
+
+Nous sommes ravis de vous accueillir dans la famille Hôtel Deluxe ! 
+Votre compte a été créé avec succès et vous pouvez dès maintenant 
+profiter de tous nos services.
+
+INFORMATIONS DE VOTRE COMPTE
+-----------------------------
+Nom complet: {{ user.get_full_name }}
+Nom d'utilisateur: {{ user.username }}
+Email: {{ user.email }}
+Date d'inscription: {{ user.date_joined|date:"l d F Y à H:i" }}
+Statut du compte: ✅ Actif
+
+AVANTAGES DE VOTRE COMPTE HÔTEL DELUXE
+---------------------------------------
+✓ Réservations en ligne 24h/24, 7j/7
+✓ Gestion de vos réservations depuis votre espace personnel
+✓ Historique complet de vos séjours
+✓ Offres et promotions exclusives
+✓ Programme de fidélité avec points cadeaux
+✓ Check-in express pour vos futurs séjours
+✓ Personnalisation de vos préférences
+✓ Support client prioritaire
+
+PROCHAINES ÉTAPES
+-----------------
+Pour commencer à utiliser votre compte :
+
+1. Connectez-vous à votre espace personnel
+   → http://127.0.0.1:8000/accounts/login/
+
+2. Complétez votre profil avec vos préférences
+   → http://127.0.0.1:8000/accounts/profile/
+
+3. Explorez nos chambres et découvrez nos offres
+   → http://127.0.0.1:8000/rooms/
+
+4. Effectuez votre première réservation et bénéficiez de -10% !
+
+OFFRE DE BIENVENUE
+------------------
+🎉 OFFRE SPÉCIALE NOUVEAUX CLIENTS 🎉
+
+Bénéficiez de 10% de réduction sur votre première réservation 
+avec le code : BIENVENUE10
+
+Offre valable 30 jours à partir de votre inscription.
+
+LIENS UTILES
+------------
+Se connecter: http://127.0.0.1:8000/accounts/login/
+Nos chambres: http://127.0.0.1:8000/rooms/
+Vérifier disponibilités: http://127.0.0.1:8000/rooms/search/
+Accueil: http://127.0.0.1:8000/
+
+BESOIN D'AIDE ?
+---------------
+Notre équipe est là pour vous accompagner :
+
+• Service client: {{ hotel_phone }}
+• Email: {{ hotel_email }}
+• Chat en ligne: Disponible sur notre site web
+• Réception: Ouverte 24h/24, 7j/7
+
+Nous avons hâte de vous accueillir lors de votre prochain séjour !
+
+Cordialement,
+L'équipe de l'Hôtel Deluxe
+
+{{ hotel_name }}
+{{ hotel_address }}
+Téléphone: {{ hotel_phone }} | Email: {{ hotel_email }}
+
+---
+Cet email a été envoyé automatiquement suite à votre inscription.
+Si vous n'êtes pas à l'origine de cette inscription, 
+veuillez nous contacter au {{ hotel_phone }}.

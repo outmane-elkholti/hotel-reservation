@@ -1,0 +1,91 @@
+flowchart TB
+    subgraph "Système de réservation d'hôtel"
+        GU[Gestion des utilisateurs\net authentification]
+        GC[Gestion des chambres\net disponibilités]
+        GR[Gestion des réservations]
+        RS[Reporting et statistiques]
+        
+        subgraph "Gestion des utilisateurs et authentification"
+            GU1[S'inscrire]
+            GU2[Se connecter]
+            GU3[Gérer son profil]
+            GU4[Réinitialiser mot de passe]
+            GU5[Gérer les rôles]
+        end
+        
+        subgraph "Gestion des chambres et disponibilités"
+            GC1[Ajouter une chambre]
+            GC2[Modifier une chambre]
+            GC3[Supprimer une chambre]
+            GC4[Consulter les disponibilités]
+            GC5[Mettre à jour le statut]
+        end
+        
+        subgraph "Gestion des réservations"
+            GR1[Créer une réservation]
+            GR2[Modifier une réservation]
+            GR3[Annuler une réservation]
+            GR4[Consulter les réservations]
+            GR5[Effectuer le check-in]
+            GR6[Effectuer le check-out]
+            GR7[Gérer les paiements]
+        end
+        
+        subgraph "Reporting et statistiques"
+            RS1[Générer rapport d'occupation]
+            RS2[Analyser les revenus]
+            RS3[Consulter statistiques clients]
+            RS4[Exporter les données]
+        end
+    end
+    
+    Client((Client))
+    Receptionniste((Réceptionniste))
+    Manager((Manager))
+    Admin((Administrateur))
+    
+    %% Relations clients
+    Client --> GU1
+    Client --> GU2
+    Client --> GU3
+    Client --> GU4
+    Client --> GC4
+    Client --> GR1
+    Client --> GR2
+    Client --> GR3
+    Client --> GR4
+    
+    %% Relations réceptionniste
+    Receptionniste --> GU2
+    Receptionniste --> GC4
+    Receptionniste --> GC5
+    Receptionniste --> GR1
+    Receptionniste --> GR2
+    Receptionniste --> GR3
+    Receptionniste --> GR4
+    Receptionniste --> GR5
+    Receptionniste --> GR6
+    Receptionniste --> GR7
+    
+    %% Relations manager
+    Manager --> GU2
+    Manager --> GC1
+    Manager --> GC2
+    Manager --> GC3
+    Manager --> GC4
+    Manager --> GC5
+    Manager --> RS1
+    Manager --> RS2
+    Manager --> RS3
+    Manager --> RS4
+    
+    %% Relations administrateur
+    Admin --> GU2
+    Admin --> GU5
+    Admin --> GC1
+    Admin --> GC2
+    Admin --> GC3
+    Admin --> RS1
+    Admin --> RS2
+    Admin --> RS3
+    Admin --> RS4

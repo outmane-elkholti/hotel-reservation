@@ -14,10 +14,10 @@
         <div class="col-md-8">
             <div class="card reservation-form mb-4">
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="reservationForm">
                         {% csrf_token %}
                         
-                        <!-- Client selection for staff -->
+                        <!-- Sélection du client -->
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="mb-0">Client</h5>
@@ -44,7 +44,7 @@
                                             <strong>Client sélectionné:</strong>
                                             <span id="selected_client_name"></span>
                                             (<span id="selected_client_email"></span>)
-                                            <input type="hidden" name="client" id="selected_client_id">
+                                            <input type="hidden" name="client_id" id="selected_client_id">
                                             <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="clear_client_selection">
                                                 <i class="fas fa-times"></i> Changer
                                             </button>
@@ -61,7 +61,7 @@
                             </div>
                         </div>
                         
-                        <!-- Dates -->
+                        <!-- Dates de séjour -->
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="mb-0">Dates de séjour</h5>
@@ -69,67 +69,75 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="{{ form.check_in_date.id_for_label }}" class="form-label">Date d'arrivée</label>
-                                        {{ form.check_in_date }}
-                                        {% if form.check_in_date.errors %}
-                                            <div class="text-danger">{{ form.check_in_date.errors }}</div>
-                                        {% endif %}
+                                        <label for="check_in_date" class="form-label">Date d'arrivée</label>
+                                        <input type="date" class="form-control" id="check_in_date" name="check_in_date" required>
                                     </div>
                                     
                                     <div class="col-md-6 mb-3">
-                                        <label for="{{ form.check_out_date.id_for_label }}" class="form-label">Date de départ</label>
-                                        {{ form.check_out_date }}
-                                        {% if form.check_out_date.errors %}
-                                            <div class="text-danger">{{ form.check_out_date.errors }}</div>
-                                        {% endif %}
+                                        <label for="check_out_date" class="form-label">Date de départ</label>
+                                        <input type="date" class="form-control" id="check_out_date" name="check_out_date" required>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Chambres -->
+                        <!-- Sélection des chambres -->
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="mb-0">Chambres</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    {% for room in form.rooms %}
+                                    {% for room in available_rooms %}
                                         <div class="col-md-6 mb-3">
                                             <div class="card h-100">
                                                 <div class="card-body">
                                                     <div class="form-check">
-                                                        {{ room }}
+                                                        <input class="form-check-input" type="checkbox" name="rooms" value="{{ room.id }}" id="room_{{ room.id }}">
+                                                        <label class="form-check-label" for="room_{{ room.id }}">
+                                                            <strong>Room {{ room.number }} - {{ room.room_type.name }}</strong><br>
+                                                            <small class="text-muted">
+                                                                Étage {{ room.floor }} | {{ room.room_type.max_capacity }} personnes | {{ room.base_price }}€/nuit
+                                                            </small>
+                                                        </label>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+                                    {% empty %}
+                                        <div class="col-12">
+                                            <p class="text-muted">Aucune chambre disponible pour le moment.</p>
+                                        </div>
                                     {% endfor %}
                                 </div>
-                                {% if form.rooms.errors %}
-                                    <div class="text-danger">{{ form.rooms.errors }}</div>
-                                {% endif %}
                             </div>
                         </div>
                         
-                        <!-- Services -->
+                        <!-- Services additionnels -->
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="mb-0">Services additionnels</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    {% for service in form.services %}
+                                    {% for service in available_services %}
                                         <div class="col-md-6 mb-2">
                                             <div class="form-check">
-                                                {{ service }}
+                                                <input class="form-check-input" type="checkbox" name="services" value="{{ service.id }}" id="service_{{ service.id }}">
+                                                <label class="form-check-label" for="service_{{ service.id }}">
+                                                    <strong>{{ service.name }}</strong> - {{ service.price }}€
+                                                    {% if service.description %}
+                                                        <br><small class="text-muted">{{ service.description }}</small>
+                                                    {% endif %}
+                                                </label>
                                             </div>
+                                        </div>
+                                    {% empty %}
+                                        <div class="col-12">
+                                            <p class="text-muted">Aucun service additionnel disponible.</p>
                                         </div>
                                     {% endfor %}
                                 </div>
-                                {% if form.services.errors %}
-                                    <div class="text-danger">{{ form.services.errors }}</div>
-                                {% endif %}
                             </div>
                         </div>
                         
@@ -140,22 +148,11 @@
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <label for="{{ form.notes.id_for_label }}" class="form-label">Notes ou demandes spéciales</label>
-                                    {{ form.notes }}
-                                    {% if form.notes.errors %}
-                                        <div class="text-danger">{{ form.notes.errors }}</div>
-                                    {% endif %}
+                                    <label for="notes" class="form-label">Notes ou demandes spéciales</label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Demandes spéciales du client..."></textarea>
                                 </div>
                             </div>
                         </div>
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
                         
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary">Annuler</a>
@@ -175,7 +172,7 @@
                 </div>
                 <div class="card-body">
                     <div id="reservation-summary">
-                        <p>Veuillez sélectionner un client et au moins une chambre pour voir le résumé.</p>
+                        <p>Veuillez sélectionner un client et au moins une chambre pour voir le résumé de votre réservation.</p>
                     </div>
                 </div>
             </div>
@@ -210,17 +207,17 @@
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="first_name" class="form-label">Prénom</label>
+                            <label for="first_name" class="form-label">Prénom *</label>
                             <input type="text" class="form-control" id="first_name" name="first_name" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="last_name" class="form-label">Nom</label>
+                            <label for="last_name" class="form-label">Nom *</label>
                             <input type="text" class="form-control" id="last_name" name="last_name" required>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label">Email *</label>
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -248,8 +245,36 @@
 document.addEventListener('DOMContentLoaded', function() {
     let selectedClientId = null;
     
+    // Définir les dates minimales
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('check_in_date').min = today;
+    document.getElementById('check_out_date').min = today;
+    
+    // Mettre à jour la date minimale de départ quand la date d'arrivée change
+    document.getElementById('check_in_date').addEventListener('change', function() {
+        const checkInDate = new Date(this.value);
+        const nextDay = new Date(checkInDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        document.getElementById('check_out_date').min = nextDay.toISOString().split('T')[0];
+        
+        // Si la date de départ est antérieure, la mettre à jour
+        const checkOutInput = document.getElementById('check_out_date');
+        if (checkOutInput.value && new Date(checkOutInput.value) <= checkInDate) {
+            checkOutInput.value = nextDay.toISOString().split('T')[0];
+        }
+        
+        updateSummary();
+    });
+    
     // Recherche de clients
-    document.getElementById('search_client_btn').addEventListener('click', function() {
+    document.getElementById('search_client_btn').addEventListener('click', searchClients);
+    document.getElementById('client_search').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            searchClients();
+        }
+    });
+    
+    function searchClients() {
         const query = document.getElementById('client_search').value;
         if (query.length < 2) {
             alert('Veuillez saisir au moins 2 caractères');
@@ -294,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Erreur:', error);
                 alert('Erreur lors de la recherche');
             });
-    });
+    }
     
     // Sélectionner un client
     function selectClient(client) {
@@ -306,6 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('client_search_results').innerHTML = '';
         document.getElementById('client_search').value = '';
         updateSubmitButton();
+        updateSummary();
     }
     
     // Effacer la sélection de client
@@ -314,6 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('selected_client_id').value = '';
         document.getElementById('selected_client_info').style.display = 'none';
         updateSubmitButton();
+        updateSummary();
     });
     
     // Créer un nouveau client
@@ -321,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('newClientForm');
         const formData = new FormData(form);
         
-        fetch('/accounts/create-client-ajax/', {
+        fetch('/reservations/create-client-ajax/', {
             method: 'POST',
             body: formData,
             headers: {
@@ -348,18 +375,88 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mettre à jour le bouton de soumission
     function updateSubmitButton() {
         const submitBtn = document.getElementById('submit_reservation');
-        submitBtn.disabled = !selectedClientId;
+        const hasClient = selectedClientId !== null;
+        const hasRoom = document.querySelectorAll('input[name="rooms"]:checked').length > 0;
+        const hasDates = document.getElementById('check_in_date').value && document.getElementById('check_out_date').value;
+        
+        submitBtn.disabled = !(hasClient && hasRoom && hasDates);
     }
+    
+    // Mettre à jour le résumé
+    function updateSummary() {
+        const summaryDiv = document.getElementById('reservation-summary');
+        const checkInDate = document.getElementById('check_in_date').value;
+        const checkOutDate = document.getElementById('check_out_date').value;
+        const selectedRooms = document.querySelectorAll('input[name="rooms"]:checked');
+        const selectedServices = document.querySelectorAll('input[name="services"]:checked');
+        
+        if (!selectedClientId || selectedRooms.length === 0 || !checkInDate || !checkOutDate) {
+            summaryDiv.innerHTML = '<p>Veuillez sélectionner un client, au moins une chambre et des dates valides pour voir le résumé.</p>';
+            return;
+        }
+        
+        // Calculer le nombre de nuits
+        const checkIn = new Date(checkInDate);
+        const checkOut = new Date(checkOutDate);
+        const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+        
+        let html = `
+            <p><strong>Client:</strong> ${document.getElementById('selected_client_name').textContent}</p>
+            <p><strong>Dates:</strong> ${checkInDate} au ${checkOutDate}</p>
+            <p><strong>Durée:</strong> ${nights} nuit(s)</p>
+            <hr>
+            <p><strong>Chambres sélectionnées:</strong></p>
+            <ul>
+        `;
+        
+        selectedRooms.forEach(room => {
+            const label = room.parentNode.querySelector('label').textContent.trim();
+            html += `<li>${label}</li>`;
+        });
+        
+        html += `</ul>`;
+        
+        if (selectedServices.length > 0) {
+            html += `
+                <hr>
+                <p><strong>Services additionnels:</strong></p>
+                <ul>
+            `;
+            
+            selectedServices.forEach(service => {
+                const label = service.parentNode.querySelector('label').textContent.trim();
+                html += `<li>${label}</li>`;
+            });
+            
+            html += `</ul>`;
+        }
+        
+        html += `
+            <hr>
+            <p class="text-muted">Le montant total sera calculé automatiquement.</p>
+        `;
+        
+        summaryDiv.innerHTML = html;
+    }
+    
+    // Attacher les événements pour la mise à jour
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'rooms' || e.target.name === 'services' || e.target.id === 'check_out_date') {
+            updateSubmitButton();
+            updateSummary();
+        }
+    });
     
     // Recherche en temps réel
     document.getElementById('client_search').addEventListener('input', function() {
         const query = this.value;
         if (query.length >= 2) {
-            // Auto-search after 500ms
             clearTimeout(this.searchTimeout);
             this.searchTimeout = setTimeout(() => {
-                document.getElementById('search_client_btn').click();
+                searchClients();
             }, 500);
+        } else if (query.length === 0) {
+            document.getElementById('client_search_results').innerHTML = '';
         }
     });
 });

@@ -23,38 +23,75 @@
                         <a class="nav-link {% if '/reservations/' in request.path %}active{% endif %}" href="{% url 'reservation_list' %}">Mes réservations</a>
                     </li>
                     
+                    {% if user.profile.role.name == 'Réceptionniste' or user.profile.role.name == 'Manager' or user.profile.role.name == 'Administrateur' %}
+                        <!-- NOUVEAU MENU RÉCEPTION POUR LES RÉCEPTIONNISTES -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="receptionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-concierge-bell me-1"></i> Réception
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="receptionDropdown">
+                                <li><a class="dropdown-item" href="{% url 'receptionist_create_reservation' %}">
+                                    <i class="fas fa-calendar-plus me-2"></i> Nouvelle réservation
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'search_results' %}">
+                                    <i class="fas fa-search-plus me-2"></i> Rechercher client/réservation
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                    
                     {% if user.profile.role.name == 'Administrateur' or user.profile.role.name == 'Manager' %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Administration
+                                <i class="fas fa-cogs me-1"></i> Administration
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                <li><a class="dropdown-item" href="{% url 'user_list' %}">Utilisateurs</a></li>
-                                <li><a class="dropdown-item" href="{% url 'manage_roles' %}">Rôles</a></li>
+                                <li><a class="dropdown-item" href="{% url 'user_list' %}">
+                                    <i class="fas fa-users me-2"></i> Utilisateurs
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'manage_roles' %}">
+                                    <i class="fas fa-user-tag me-2"></i> Rôles
+                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'room_type_list' %}">Types de chambre</a></li>
-                                <li><a class="dropdown-item" href="{% url 'manage_equipment' %}">Équipements</a></li>
-                                <li><a class="dropdown-item" href="{% url 'manage_services' %}">Services</a></li>
+                                <li><a class="dropdown-item" href="{% url 'room_type_list' %}">
+                                    <i class="fas fa-bed me-2"></i> Types de chambre
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'manage_equipment' %}">
+                                    <i class="fas fa-tools me-2"></i> Équipements
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'manage_services' %}">
+                                    <i class="fas fa-concierge-bell me-2"></i> Services
+                                </a></li>
                             </ul>
                         </li>
                         
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {% if '/reports/' in request.path %}active{% endif %}" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Rapports
+                                <i class="fas fa-chart-bar me-1"></i> Rapports
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
-                                <li><a class="dropdown-item" href="{% url 'report_list' %}">Liste des rapports</a></li>
+                                <li><a class="dropdown-item" href="{% url 'report_list' %}">
+                                    <i class="fas fa-list-alt me-2"></i> Liste des rapports
+                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'occupancy_report' %}">Taux d'occupation</a></li>
-                                <li><a class="dropdown-item" href="{% url 'revenue_report' %}">Revenus</a></li>
-                                <li><a class="dropdown-item" href="{% url 'client_stats' %}">Statistiques clients</a></li>
+                                <li><a class="dropdown-item" href="{% url 'occupancy_report' %}">
+                                    <i class="fas fa-chart-pie me-2"></i> Taux d'occupation
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'revenue_report' %}">
+                                    <i class="fas fa-dollar-sign me-2"></i> Revenus
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'client_stats' %}">
+                                    <i class="fas fa-user-chart me-2"></i> Statistiques clients
+                                </a></li>
                             </ul>
                         </li>
                     {% endif %}
                     
                     {% if user.profile.role.name == 'Réceptionniste' %}
                         <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}">Tableau de bord</a>
+                            <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}">
+                                <i class="fas fa-tachometer-alt me-1"></i> Tableau de bord
+                            </a>
                         </li>
                     {% endif %}
                 {% endif %}

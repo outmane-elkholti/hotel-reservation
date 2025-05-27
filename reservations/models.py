@@ -93,3 +93,34 @@ class Payment(models.Model):
     
     def __str__(self):
         return f"Payment #{self.id} for Reservation #{self.reservation.id}"
+    
+    # reservations/models.py - Ajouter cette méthode au modèle Reservation
+
+def calculate_total(self):
+    """
+    Calcule le montant total de la réservation
+    """
+    total = 0
+    
+    # Calculer le nombre de nuits
+    if self.check_out_date and self.check_in_date:
+        nights = (self.check_out_date - self.check_in_date).days
+        
+        # Ajouter le prix des chambres
+        for room in self.rooms.all():
+            total += room.base_price * nights
+        
+        # Ajouter le prix des services
+        for service in self.services.all():
+            total += service.price
+    
+    return total
+
+# Ajouter aussi cette méthode pour obtenir la durée du séjour
+def get_duration_nights(self):
+    """
+    Retourne le nombre de nuits du séjour
+    """
+    if self.check_out_date and self.check_in_date:
+        return (self.check_out_date - self.check_in_date).days
+    return 0

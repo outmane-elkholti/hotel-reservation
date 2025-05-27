@@ -11,7 +11,229 @@ from accounts.utils import send_reservation_confirmation_email, send_payment_con
 from rooms.models import Room
 from .models import Reservation, Payment, Service, ReservationStatus
 from .forms import ReservationForm, PaymentForm, ServiceForm, ReservationStatusForm
+# reservations/views.py - Ajouter ces vues pour les réceptionnistes
 
+from django.http import JsonResponse
+from django.db.models import Q
+from django.contrib.auth.models import User
+
+@login_required
+def receptionist_create_reservation(request):
+    """Vue spéciale pour les réceptionnistes pour créer des réservations"""
+    
+    # Vérifier si l'utilisateur est réceptionniste, manager ou admin
+    if not request.user.profile.role or request.user.profile.role.name not in ['Réceptionniste', 'Manager', 'Administrateur']:
+        messages.error(request, "Vous n'avez pas l'autorisation d'accéder à cette page.")
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        # Récupérer les données du formulaire
+        client_id = request.POST.get('client_id')
+        check_in_date = request.POST.get('check_in_date')
+        check_out_date = request.POST.get('check_out_date')
+        room_ids = request.POST.getlist('rooms')
+        service_ids = request.POST.getlist('services')
+        notes = request.POST.get('notes', '')
+        
+        try:
+            # Valider le client
+            if not client_id:
+                messages.error(request, "Veuillez sélectionner un client.")
+                return redirect('receptionist_create_reservation')
+            
+            client = get_object_or_404(Client, id=client_id)
+            
+            # Valider les dates
+            if not check_in_date or not check_out_date:
+                messages.error(request, "Veuillez sélectionner les dates d'arrivée et de départ.")
+                return redirect('receptionist_create_reservation')
+            
+            check_in = datetime.strptime(check_in_date, '%Y-%m-%d').date()
+            check_out = datetime.strptime(check_out_date, '%Y-%m-%d').date()
+            
+            if check_out <= check_in:
+                messages.error(request, "La date de départ doit être postérieure à la date d'arrivée.")
+                return redirect('receptionist_create_reservation')
+            
+            # Valider les chambres
+            if not room_ids:
+                messages.error(request, "Veuillez sélectionner au moins une chambre.")
+                return redirect('receptionist_create_reservation')
+            
+            rooms = Room.objects.filter(id__in=room_ids, is_available=True)
+            if len(rooms) != len(room_ids):
+                messages.error(request, "Une ou plusieurs chambres sélectionnées ne sont pas disponibles.")
+                return redirect('receptionist_create_reservation')
+            
+            # Créer la réservation
+            reservation = Reservation.objects.create(
+                client=client,
+                check_in_date=check_in,
+                check_out_date=check_out,
+                notes=notes,
+                status=ReservationStatus.PENDING,
+                total_amount=0  # Sera recalculé après
+            )
+            
+            # Ajouter les chambres
+            reservation.rooms.set(rooms)
+            
+            # Ajouter les services si sélectionnés
+            if service_ids:
+                services = Service.objects.filter(id__in=service_ids, is_available=True)
+                reservation.services.set(services)
+            
+            # Recalculer le montant total
+            reservation.total_amount = reservation.calculate_total()
+            reservation.save()
+            
+            # Envoyer l'email de confirmation
+            try:
+                from accounts.utils import send_reservation_confirmation_email
+                if send_reservation_confirmation_email(reservation):
+                    messages.success(
+                        request, 
+                        f'Réservation #{reservation.id} créée avec succès ! Email de confirmation envoyé à {client.profile.user.email}.'
+                    )
+                else:
+                    messages.success(request, f'Réservation #{reservation.id} créée avec succès !')
+                    messages.warning(request, 'L\'email de confirmation n\'a pas pu être envoyé.')
+            except Exception as e:
+                messages.success(request, f'Réservation #{reservation.id} créée avec succès !')
+                messages.warning(request, f'Erreur lors de l\'envoi de l\'email: {str(e)}')
+            
+            # Rediriger vers les détails de la réservation
+            return redirect('reservation_detail', pk=reservation.id)
+            
+        except Exception as e:
+            messages.error(request, f"Erreur lors de la création de la réservation: {str(e)}")
+            return redirect('receptionist_create_reservation')
+    
+    # GET request - afficher le formulaire
+    # Récupérer toutes les chambres disponibles
+    available_rooms = Room.objects.filter(is_available=True).select_related('room_type')
+    
+    # Récupérer tous les services disponibles
+    available_services = Service.objects.filter(is_available=True)
+    
+    # Récupérer tous les clients pour la recherche (limité pour performance)
+    recent_clients = Client.objects.select_related('profile__user').order_by('-profile__date_joined')[:50]
+    
+    context = {
+        'available_rooms': available_rooms,
+        'available_services': available_services,
+        'recent_clients': recent_clients,
+    }
+    
+    return render(request, 'reservations/receptionist_reservation_form.html', context)
+
+
+@login_required
+def search_clients_ajax(request):
+    """Recherche AJAX de clients pour les réceptionnistes"""
+    
+    # Vérifier les permissions
+    if not request.user.profile.role or request.user.profile.role.name not in ['Réceptionniste', 'Manager', 'Administrateur']:
+        return JsonResponse({'error': 'Permission refusée'}, status=403)
+    
+    query = request.GET.get('q', '').strip()
+    
+    if len(query) < 2:
+        return JsonResponse({'clients': []})
+    
+    # Rechercher dans les noms, emails et téléphones
+    clients = Client.objects.filter(
+        Q(profile__user__first_name__icontains=query) |
+        Q(profile__user__last_name__icontains=query) |
+        Q(profile__user__email__icontains=query) |
+        Q(profile__phone__icontains=query)
+    ).select_related('profile__user')[:10]  # Limiter à 10 résultats
+    
+    client_data = []
+    for client in clients:
+        full_name = client.profile.user.get_full_name() or client.profile.user.username
+        client_data.append({
+            'id': client.id,
+            'full_name': full_name,
+            'email': client.profile.user.email,
+            'phone': client.profile.phone or '',
+        })
+    
+    return JsonResponse({'clients': client_data})
+
+
+@login_required
+def create_client_ajax(request):
+    """Création AJAX d'un nouveau client pour les réceptionnistes"""
+    
+    # Vérifier les permissions
+    if not request.user.profile.role or request.user.profile.role.name not in ['Réceptionniste', 'Manager', 'Administrateur']:
+        return JsonResponse({'error': 'Permission refusée'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+    
+    try:
+        # Récupérer les données
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        address = request.POST.get('address', '').strip()
+        
+        # Validation
+        if not first_name or not last_name or not email:
+            return JsonResponse({'error': 'Prénom, nom et email sont requis'}, status=400)
+        
+        # Vérifier si l'email existe déjà
+        if User.objects.filter(email=email).exists():
+            return JsonResponse({'error': 'Un utilisateur avec cet email existe déjà'}, status=400)
+        
+        # Générer un nom d'utilisateur unique
+        username = f"{first_name.lower()}.{last_name.lower()}"
+        counter = 1
+        original_username = username
+        while User.objects.filter(username=username).exists():
+            username = f"{original_username}{counter}"
+            counter += 1
+        
+        # Créer l'utilisateur avec un mot de passe temporaire
+        import secrets
+        import string
+        temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+        
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            password=temp_password
+        )
+        
+        # Mettre à jour le profil
+        profile = user.profile
+        profile.phone = phone
+        profile.save()
+        
+        # Récupérer ou créer le client
+        client, created = Client.objects.get_or_create(
+            profile=profile,
+            defaults={'address': address}
+        )
+        
+        # Retourner les données du client créé
+        return JsonResponse({
+            'success': True,
+            'client': {
+                'id': client.id,
+                'full_name': user.get_full_name(),
+                'email': user.email,
+                'phone': phone,
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': f'Erreur lors de la création: {str(e)}'}, status=500)
 @login_required
 def reservation_list(request):
     """Affiche la liste des réservations de l'utilisateur ou toutes les réservations pour le personnel"""

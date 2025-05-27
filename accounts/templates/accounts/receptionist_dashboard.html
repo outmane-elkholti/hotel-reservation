@@ -5,6 +5,7 @@
 {% block content %}
 <section class="py-4">
     <div class="container">
+        <!-- Modification 1: Changement d'URL pour la nouvelle réservation -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="mb-1">Tableau de bord Réceptionniste</h1>
@@ -14,7 +15,8 @@
                 <a href="{% url 'search_availability' %}" class="btn btn-outline-primary me-2">
                     <i class="fas fa-search"></i> Disponibilités
                 </a>
-                <a href="{% url 'create_reservation' %}" class="btn btn-primary">
+                <!-- CHANGEMENT ICI: nouvelle URL pour réceptionnistes -->
+                <a href="{% url 'receptionist_create_reservation' %}" class="btn btn-primary">
                     <i class="fas fa-calendar-plus"></i> Nouvelle réservation
                 </a>
             </div>
@@ -273,13 +275,15 @@
             </div>
             
             <div class="col-md-4">
+                <!-- Modification 2: Actions rapides avec nouvelle URL -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <h4 class="mb-0">Actions rapides</h4>
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            <a href="{% url 'create_reservation' %}" class="btn btn-primary btn-lg">
+                            <!-- CHANGEMENT ICI: nouvelle URL pour réceptionnistes -->
+                            <a href="{% url 'receptionist_create_reservation' %}" class="btn btn-primary btn-lg">
                                 <i class="fas fa-calendar-plus me-2"></i> Nouvelle réservation
                             </a>
                             <a href="{% url 'search_availability' %}" class="btn btn-outline-primary">
@@ -291,6 +295,38 @@
                             <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quickPaymentModal">
                                 <i class="fas fa-money-bill-wave me-2"></i> Enregistrer un paiement
                             </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nouvelle section: Outils réceptionniste -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Outils réceptionniste</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <a href="{% url 'receptionist_create_reservation' %}" class="d-block p-3 text-center text-decoration-none">
+                                    <i class="fas fa-user-plus fa-2x text-primary mb-2"></i>
+                                    <h5>Réservation client</h5>
+                                    <p class="text-muted mb-0 small">Créer une réservation pour un client</p>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'search_results' %}" class="d-block p-3 text-center text-decoration-none">
+                                    <i class="fas fa-search fa-2x text-primary mb-2"></i>
+                                    <h5>Rechercher</h5>
+                                    <p class="text-muted mb-0 small">Trouver un client ou une réservation</p>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'reservation_list' %}" class="d-block p-3 text-center text-decoration-none">
+                                    <i class="fas fa-calendar-check fa-2x text-primary mb-2"></i>
+                                    <h5>Planning</h5>
+                                    <p class="text-muted mb-0 small">Voir toutes les réservations</p>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

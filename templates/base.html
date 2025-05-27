@@ -23,20 +23,43 @@
     <!-- Navigation -->
     {% include 'navbar.html' %}
     
-    <!-- Messages -->
+    <!-- Messages avec bouton de fermeture -->
     {% if messages %}
     <div class="container mt-3">
         {% for message in messages %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="d-flex align-items-start">
+                <!-- Icône du message -->
+                <div class="me-3">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle fa-lg"></i>
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}
+                        <i class="fas fa-exclamation-circle fa-lg"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle fa-lg"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle fa-lg"></i>
+                    {% else %}
+                        <i class="fas fa-bell fa-lg"></i>
+                    {% endif %}
+                </div>
+                
+                <!-- Contenu du message -->
+                <div class="flex-grow-1">
+                    {{ message }}
+                </div>
+            </div>
+            
+            <!-- Bouton de fermeture X -->
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
         {% endfor %}
     </div>
     {% endif %}
     
     <!-- Content -->
-     
     <main>
         {% block content %}{% endblock %}
     </main>
@@ -51,5 +74,30 @@
     <script src="/static/js/main.js"></script>
     
     {% block extra_js %}{% endblock %}
+    
+    <!-- Script pour auto-masquer les messages après 5 secondes -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-masquer les messages de succès après 5 secondes
+            const successAlerts = document.querySelectorAll('.alert-success');
+            successAlerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+            
+            // Auto-masquer les messages d'info après 4 secondes
+            const infoAlerts = document.querySelectorAll('.alert-info');
+            infoAlerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 4000);
+            });
+            
+            // Les messages d'erreur et d'avertissement restent jusqu'à fermeture manuelle
+        });
+    </script>
 </body>
 </html>

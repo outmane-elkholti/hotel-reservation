@@ -1,0 +1,162 @@
+classDiagram
+    %% Classes
+    class Utilisateur {
+        -int id
+        -string nom
+        -string prenom
+        -string email
+        -string motDePasse
+        -string telephone
+        -Date dateInscription
+        -Role role
+        +s_inscrire()
+        +seConnecter()
+        +modifierProfil()
+        +reinitialiserMotDePasse()
+    }
+
+    class Role {
+        -int id
+        -string nom
+        -string description
+        -List~Permission~ permissions
+        +ajouterPermission()
+        +retirerPermission()
+    }
+
+    class Permission {
+        -int id
+        -string nom
+        -string description
+    }
+
+    class Client {
+        -string adresse
+        -bool estFidele
+        -int pointsFidelite
+        +consulterReservations()
+        +faireReservation()
+        +annulerReservation()
+        +modifierReservation()
+    }
+
+    class Employe {
+        -string poste
+        -Date dateEmbauche
+        -string numeroEmploye
+        +gererChambres()
+        +gererReservations()
+    }
+
+    class Chambre {
+        -int numero
+        -TypeChambre type
+        -float prixBase
+        -int etage
+        -bool estDisponible
+        -string description
+        -List~Equipement~ equipements
+        +modifierStatut()
+        +calculerPrix()
+    }
+
+    class TypeChambre {
+        -int id
+        -string nom
+        -int capaciteMax
+        -string description
+        -List~Photo~ photos
+    }
+
+    class Equipement {
+        -int id
+        -string nom
+        -string description
+    }
+
+    class Reservation {
+        -int id
+        -Client client
+        -List~Chambre~ chambres
+        -Date dateArrivee
+        -Date dateDepart
+        -float montantTotal
+        -StatutReservation statut
+        -List~Service~ servicesAdditionnels
+        -List~Paiement~ paiements
+        +calculerMontantTotal()
+        +annuler()
+        +modifier()
+        +effectuerCheckIn()
+        +effectuerCheckOut()
+    }
+
+    class StatutReservation {
+        <<enumeration>>
+        CONFIRMEE
+        EN_ATTENTE
+        ANNULEE
+        CHECK_IN
+        CHECK_OUT
+    }
+
+    class Service {
+        -int id
+        -string nom
+        -string description
+        -float prix
+        -bool disponible
+    }
+
+    class Paiement {
+        -int id
+        -Date date
+        -float montant
+        -MethodePaiement methode
+        -string reference
+        -bool estConfirme
+        +confirmer()
+        +rembourser()
+    }
+
+    class MethodePaiement {
+        <<enumeration>>
+        CARTE_CREDIT
+        ESPECES
+        VIREMENT
+        CHEQUE
+    }
+
+    class Rapport {
+        -int id
+        -string titre
+        -Date dateGeneration
+        -TypeRapport type
+        -string contenu
+        +generer()
+        +exporter()
+    }
+
+    class TypeRapport {
+        <<enumeration>>
+        OCCUPATION
+        REVENU
+        CLIENTS
+        SERVICES
+    }
+
+    %% Relations
+    Utilisateur <|-- Client
+    Utilisateur <|-- Employe
+    Utilisateur "1" -- "1" Role : a
+    Role "1" -- "*" Permission : contient
+
+    Client "1" -- "*" Reservation : effectue
+    Reservation "1" -- "*" Chambre : utilise
+    Reservation "*" -- "*" Service : inclut
+    Reservation "1" -- "*" Paiement : a
+
+    Chambre "*" -- "1" TypeChambre : type
+    Chambre "*" -- "*" Equipement : equipée_de
+
+    Employe "1" -- "*" Rapport : génère

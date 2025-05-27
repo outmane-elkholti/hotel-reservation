@@ -1,8 +1,10 @@
+# reservations/urls.py - Ajouter ces URLs
+
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Gestion des réservations
+    # URLs existantes...
     path('', views.reservation_list, name='reservation_list'),
     path('create/', views.create_reservation, name='create_reservation'),
     path('<int:pk>/', views.reservation_detail, name='reservation_detail'),
@@ -23,6 +25,11 @@ urlpatterns = [
     path('services/<int:pk>/update/', views.service_update, name='service_update'),
     path('services/<int:pk>/delete/', views.service_delete, name='service_delete'),
     
-    # Recherche (NOUVEAU - ajouté pour résoudre le problème)
+    # Recherche
     path('search/', views.search_results, name='search_results'),
+    
+    # NOUVELLES URLs pour les réceptionnistes
+    path('receptionist/create/', views.receptionist_create_reservation, name='receptionist_create_reservation'),
+    path('search-clients/', views.search_clients_ajax, name='search_clients_ajax'),
+    path('create-client-ajax/', views.create_client_ajax, name='create_client_ajax'),
 ]

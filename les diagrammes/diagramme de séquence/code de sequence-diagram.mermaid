@@ -1,0 +1,53 @@
+sequenceDiagram
+    participant Client
+    participant Interface
+    participant GestionnaireAuthentification
+    participant GestionnaireChambres
+    participant GestionnaireReservation
+    participant GestionnairePaiement
+    participant BaseDeDonnees
+    participant ServiceExternePaiement
+
+    Client->>Interface: consulterDisponibilites(dateArrivee, dateDepart, nombrePersonnes)
+    Interface->>GestionnaireChambres: rechercherChambresDisponibles(dateArrivee, dateDepart, nombrePersonnes)
+    GestionnaireChambres->>BaseDeDonnees: requeteChambresDisponibles(dateArrivee, dateDepart, nombrePersonnes)
+    BaseDeDonnees-->>GestionnaireChambres: retourListeChambres()
+    GestionnaireChambres-->>Interface: afficherChambresDisponibles(listeChambres)
+    Interface-->>Client: afficherOptionsChambres()
+
+    Client->>Interface: selectionnerChambre(idChambre)
+    Client->>Interface: ajouterServices(listeServices)
+    Interface->>GestionnaireReservation: calculerMontantTotal(idChambre, dateArrivee, dateDepart, listeServices)
+    GestionnaireReservation-->>Interface: retournerMontantTotal(montant)
+    Interface-->>Client: afficherRecapitulatifReservation(chambre, dates, services, montant)
+
+    Client->>Interface: confirmerReservation()
+    Interface->>GestionnaireAuthentification: verifierConnexionClient()
+
+    alt Client non connecté
+        Interface-->>Client: demanderConnexion()
+        Client->>Interface: saisirIdentifiants(email, motDePasse)
+        Interface->>GestionnaireAuthentification: authentifier(email, motDePasse)
+        GestionnaireAuthentification->>BaseDeDonnees: verifierIdentifiants(email, motDePasse)
+        BaseDeDonnees-->>GestionnaireAuthentification: retournerUtilisateur(utilisateur)
+        GestionnaireAuthentification-->>Interface: sessionUtilisateur(utilisateur)
+    end
+
+    Interface->>GestionnaireReservation: creerReservation(idClient, idChambre, dateArrivee, dateDepart, listeServices)
+    GestionnaireReservation->>BaseDeDonnees: enregistrerReservation(donnéesReservation)
+    BaseDeDonnees-->>GestionnaireReservation: confirmerEnregistrement(idReservation)
+    GestionnaireReservation-->>Interface: reservationCreee(idReservation)
+
+    Interface->>GestionnairePaiement: demanderPaiement(idReservation, montant)
+    GestionnairePaiement-->>Client: afficherOptionsPaiement()
+    Client->>GestionnairePaiement: saisirInformationsPaiement(methodePaiement, details)
+    GestionnairePaiement->>ServiceExternePaiement: traiterPaiement(details, montant)
+    ServiceExternePaiement-->>GestionnairePaiement: confirmerPaiement(referenceTransaction)
+    GestionnairePaiement->>BaseDeDonnees: enregistrerPaiement(idReservation, montant, referenceTransaction)
+    BaseDeDonnees-->>GestionnairePaiement: confirmerEnregistrementPaiement()
+    GestionnairePaiement->>GestionnaireReservation: mettreAJourStatutReservation(idReservation, CONFIRMEE)
+    GestionnaireReservation->>BaseDeDonnees: updateStatutReservation(idReservation, CONFIRMEE)
+    BaseDeDonnees-->>GestionnaireReservation: confirmerMiseAJour()
+
+    GestionnaireReservation-->>Interface: reservationConfirmee(idReservation)
+    Interface-->>Client: afficherConfirmationReservation(details, idReservation)

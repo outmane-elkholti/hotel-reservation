@@ -27,12 +27,32 @@ def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
+            # Créer l'utilisateur
             user = form.save()
+            
+            # Connecter automatiquement l'utilisateur
             login(request, user)
-            messages.success(request, 'Compte créé avec succès!')
+            
+            # Envoyer l'email de bienvenue
+            try:
+                from .utils import send_welcome_email
+                if send_welcome_email(user):
+                    messages.success(
+                        request, 
+                        f'Compte créé avec succès ! Un email de bienvenue a été envoyé à {user.email}.'
+                    )
+                else:
+                    messages.success(request, 'Compte créé avec succès !')
+                    messages.warning(request, 'L\'email de bienvenue n\'a pas pu être envoyé.')
+            except Exception as e:
+                messages.success(request, 'Compte créé avec succès !')
+                messages.warning(request, f'Erreur lors de l\'envoi de l\'email: {str(e)}')
+            
+            # Rediriger vers le tableau de bord
             return redirect('dashboard')
     else:
         form = CustomUserCreationForm()
+    
     return render(request, 'accounts/register.html', {'form': form})
 
 @login_required
